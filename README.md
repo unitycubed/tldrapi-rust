@@ -1,7 +1,7 @@
 # tldrapi — Rust SDK for TLDRapi
 
 Official async Rust client for the
-[TLDRapi](https://unitycubed.dev/TLDRapi/) text-summarization API.
+[TLDRapi](https://tldrapi-summarizer.p.rapidapi.com/) text-summarization API.
 
 - **Async / tokio-native**
 - **Pure Rust TLS** via `rustls` (no OpenSSL / libcurl at link time)
