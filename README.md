@@ -7,14 +7,14 @@ Official async Rust client for the
 - **Pure Rust TLS** via `rustls` (no OpenSSL / libcurl at link time)
 - **Typed errors** — match on the variant to branch on failure mode
 
-## Get your RapidAPI key
+## Get your app's RapidAPI key
 
 1. Sign in at [rapidapi.com](https://rapidapi.com)
 2. Subscribe to the [TLDRapi Summarizer](https://rapidapi.com/thunderAPIs256/api/tldrapi-summarizer) listing (start with **BASIC** — free)
 3. Go to **Console** (top nav) → **Applications** → **Add App** (or open an existing one)
 4. In the App → **Authorizations** tab → click the copy icon next to your Authorization Key
 
-That's your `X-RapidAPI-Key`. Pass it to the SDK constructor.
+That's the app's `X-RapidAPI-Key`. Pass it to the SDK constructor.
 
 *Legacy path (deprecated): upper-right (?) → Legacy Developer Dashboard → Add New App → Authorization tab. The new Console path above is simpler.*
 
