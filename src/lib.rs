@@ -39,7 +39,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// RapidAPI hostname for the TLDRapi listing. Override via
 /// [`ClientOptions::rapidapi_host`] only if the listing is renamed.
-pub const DEFAULT_RAPIDAPI_HOST: &str = "tldrapi-summarization.p.rapidapi.com";
+pub const DEFAULT_RAPIDAPI_HOST: &str = "tldrapi-summarizer.p.rapidapi.com";
 
 /// Paid quality tiers. Free tier: leave [`SummarizeOptions::tier`] as `None`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
