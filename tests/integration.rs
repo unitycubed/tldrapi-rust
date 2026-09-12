@@ -155,17 +155,23 @@ async fn rates_ok() {
     Mock::given(method("GET"))
         .and(path("/rates"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "quick": 1, "standard": 5, "deep": 30, "premium": 110, "ultra": 400,
-            "updated_at": "2026-09-01"
+            "credits_per_call": { "quick": 1, "standard": 5, "deep": 30, "premium": 110, "ultra": 400 },
+            "credit_costs_updated_at": "2026-09-01",
+            "history_url": "https://tldrapi.com/TLDRapi/rates/history"
         })))
         .mount(&server)
         .await;
 
     let c = client_for(&server);
     let r = c.rates().await.unwrap();
+    // spec-nested tiers (populated on the convenience flat fields for
+    // back-compat with pre-1.0 callers).
     assert_eq!(r.quick, 1);
     assert_eq!(r.ultra, 400);
-    assert_eq!(r.updated_at.as_deref(), Some("2026-09-01"));
+    assert_eq!(r.credits_per_call.quick, 1);
+    assert_eq!(r.credit_costs_updated_at.as_deref(), Some("2026-09-01"));
+    assert_eq!(r.updated_at.as_deref(), Some("2026-09-01")); // deprecated alias
+    assert_eq!(r.history_url, "https://tldrapi.com/TLDRapi/rates/history");
 }
 
 #[tokio::test]
@@ -174,18 +180,21 @@ async fn usage_ok() {
     Mock::given(method("GET"))
         .and(path("/usage"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "period": "month",
-            "calls": 42,
-            "credits_charged": 210,
-            "credits_remaining": 790
+            "usage_count": 42,
+            "successful_requests": 40,
+            "failed_requests": 2,
+            "plan": "free",
+            "limits": { "per_minute": 3, "daily": 100 }
         })))
         .mount(&server)
         .await;
 
     let c = client_for(&server);
     let u = c.usage().await.unwrap();
-    assert_eq!(u.calls, 42);
-    assert_eq!(u.credits_remaining, 790);
+    assert_eq!(u.usage_count, 42);
+    assert_eq!(u.successful_requests, 40);
+    assert_eq!(u.plan, "free");
+    assert_eq!(u.limits.per_minute, Some(3));
 }
 
 #[tokio::test]

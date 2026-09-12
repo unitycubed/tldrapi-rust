@@ -15,7 +15,7 @@ categories = ["api-bindings"]
 # Deliberately tiny surface area. reqwest for HTTPS (rustls, no system
 # libcurl dependency); serde + serde_json for typed request/response
 # handling; thiserror for a clean error hierarchy.
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "multipart"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
