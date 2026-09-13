@@ -279,17 +279,21 @@ fn default_ultra() -> u32 { 400 }
 
 /// Plan-limit sub-object of [`UsageStats`] — populated when the server
 /// reports them; `None` otherwise. Shape mirrors `openapi.yaml`
-/// `UsageResponse.limits`.
+/// `UsageResponse.limits`. Session 58 (2026-09-12) — smoke test caught
+/// that the server returns each limit as either a bare number (the pre-
+/// session-55 shape) OR a rich object like `{"limit": N, "used": M,
+/// "remaining": K, ...}` (the current shape). `serde_json::Value`
+/// accepts both without forcing an SDK-side schema change.
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct UsageLimits {
     #[serde(default)]
-    pub per_minute: Option<u32>,
+    pub per_minute: serde_json::Value,
     #[serde(default)]
-    pub daily: Option<u32>,
+    pub daily: serde_json::Value,
     #[serde(default)]
-    pub credits: Option<u32>,
+    pub credits: serde_json::Value,
     #[serde(default)]
-    pub concurrent: Option<u32>,
+    pub concurrent: serde_json::Value,
 }
 
 /// `/usage` response. Fields align with `openapi.yaml` `UsageResponse`.
