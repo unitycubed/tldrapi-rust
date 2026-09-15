@@ -171,6 +171,14 @@ pub struct SummarizeOptions {
     /// Optional per-call generation overrides — see [`SummarizeConfig`].
     pub config: Option<SummarizeConfig>,
     pub allow_overage: bool,
+    /// #422 Opt-in to permissive paid-tier downgrade (X-Allow-Downgrade).
+    pub allow_downgrade: bool,
+    /// #434 Optional LLM axis override (X-Optional-Quality).
+    pub optional_quality: Option<String>,
+    /// #434 Optional extractive axis override (X-Optional-Extractive-Lvl).
+    pub optional_extractive_lvl: Option<String>,
+    /// #434 Optional strategy override (X-Optional-Strategy).
+    pub optional_strategy: Option<String>,
     pub extra_headers: HashMap<String, String>,
     pub timeout: Option<Duration>,
 }
@@ -398,6 +406,24 @@ impl Client {
         let mut headers = self.base_headers(opts.tier)?;
         if opts.allow_overage {
             headers.insert("X-Allow-Overage", HeaderValue::from_static("true"));
+        }
+        if opts.allow_downgrade {
+            headers.insert("X-Allow-Downgrade", HeaderValue::from_static("true"));
+        }
+        if let Some(v) = &opts.optional_quality {
+            if let Ok(hv) = HeaderValue::from_str(v) {
+                headers.insert("X-Optional-Quality", hv);
+            }
+        }
+        if let Some(v) = &opts.optional_extractive_lvl {
+            if let Ok(hv) = HeaderValue::from_str(v) {
+                headers.insert("X-Optional-Extractive-Lvl", hv);
+            }
+        }
+        if let Some(v) = &opts.optional_strategy {
+            if let Ok(hv) = HeaderValue::from_str(v) {
+                headers.insert("X-Optional-Strategy", hv);
+            }
         }
         for (k, v) in &opts.extra_headers {
             if let (Ok(name), Ok(val)) = (HeaderName::from_bytes(k.as_bytes()), HeaderValue::from_str(v)) {

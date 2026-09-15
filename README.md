@@ -1,34 +1,15 @@
+> ### ⚠️ Service notice
+>
+> **The RapidAPI listing that backs this SDK is temporarily unavailable while we work through a launch-day issue. Please check back in a few days.**
+
 # tldrapi — Rust SDK for TLDRapi
 
 Official async Rust client for the
-[TLDRapi](https://tldrapi-summarizer.p.rapidapi.com/) text-summarization API.
+[TLDRapi](https://unitycubed.dev/TLDRapi/) text-summarization API.
 
 - **Async / tokio-native**
 - **Pure Rust TLS** via `rustls` (no OpenSSL / libcurl at link time)
 - **Typed errors** — match on the variant to branch on failure mode
-
-## Get your app's RapidAPI key
-
-1. Sign in at [rapidapi.com](https://rapidapi.com)
-2. Subscribe to the [TLDRapi Summarizer](https://rapidapi.com/thunderAPIs256/api/tldrapi-summarizer) listing (start with **BASIC** — free)
-3. Go to **Console** (top nav) → **Applications** → **Add App** (or open an existing one)
-4. In the App → **Authorizations** tab → click the copy icon next to your Authorization Key
-
-That's the app's `X-RapidAPI-Key`. Pass it to the SDK constructor.
-
-*Legacy path (deprecated): upper-right (?) → Legacy Developer Dashboard → Add New App → Authorization tab. The new Console path above is simpler.*
-
-The Authorization Key field is the same value in both places — RapidAPI just labels it differently depending on which interface you use:
-
-**New Console:**
-
-![RapidAPI Console — Authorization Method labeled "RAPIDAPI"](https://raw.githubusercontent.com/unitycubed/tldrapi-docs/main/img/rapidapi-key-label-console.png)
-
-**Legacy Developer Dashboard:**
-
-![RapidAPI Legacy Developer Dashboard — Authorization Method labeled "API key"](https://raw.githubusercontent.com/unitycubed/tldrapi-docs/main/img/rapidapi-key-label-legacy.png)
-
-
 
 ## Install
 
@@ -70,6 +51,57 @@ async fn main() -> Result<(), tldrapi::Error> {
 }
 ```
 
+## Quality levels + pricing
+
+Tiers: `Tier::Quick`, `Standard`, `Deep`, `Premium`, `Ultra`.
+Higher → higher quality, larger chunks, more credits.
+
+Credit cost scales with input size (v2.1):
+`cost = 1 + Σ over chunks of (base × ceil(chunk_tokens / 1000))`.
+Base costs and chunk caps are dynamic — fetch the current schedule
+via `client.rates()` or `GET /rates`.
+
+## Advanced quality controls (v-session129+)
+
+Three orthogonal knobs on `SummarizeOptions`. Send zero (default
+`standard`), OR set `tier` to any of 30 named presets, OR set 1-3
+optional axes:
+
+- `allow_downgrade: bool` — opt-in permissive paid-tier downgrade
+- `optional_quality: Option<String>` — LLM: `quick|standard|deep|premium|ultra`
+- `optional_extractive_lvl: Option<String>` — `minimal|brief|balanced|thorough|detailed|complete`
+- `optional_strategy: Option<String>` — `contextual-compression|premium-single-shot|hierarchical-merge`
+
+Preset + axes together → axes override, server sets `X-Quality-Warning`.
+
+**30 named presets** = `{minimal|brief|balanced|thorough|detailed|complete}
+-{quick|standard|deep|premium|ultra}` (e.g. `"thorough-standard"`).
+The 5 short names (`quick`/`standard`/`deep`/`premium`/`ultra`) are the
+SCORECARD-validated highlighted anchors.
+
+```rust
+let opts = SummarizeOptions {
+    tier: Some(Tier::Premium),
+    allow_downgrade: true,
+    optional_extractive_lvl: Some("brief".into()),
+    ..Default::default()
+};
+let r = client.summarize(text, opts).await?;
+// r headers may carry x-quality-actual naming the served tier.
+```
+
+### Async submit + poll
+
+Not yet exposed as native methods (falls back to `extra_headers`):
+
+```rust
+// Submit: set X-Async: true, capture the request_id from X-Paid-Request-Id header
+// Poll: GET /paid/result/{id} — 200 returns summary, 202 = still pending, 410 = expired
+```
+
+Full native `submit_async` / `get_result` / `wait_for_result` methods
+land in the next SDK release. Use raw HTTP via reqwest today if needed.
+
 ## Error handling
 
 ```rust
@@ -99,6 +131,4 @@ match c.summarize(text, opts).await {
 
 ## License
 
-Released under the MIT License — see [LICENSE](LICENSE).
-
-Copyright (c) 2026 Ehren Biglari / Unity Cubed.
+MIT — see [LICENSE](./LICENSE).
